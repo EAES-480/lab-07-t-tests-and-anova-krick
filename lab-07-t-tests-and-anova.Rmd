@@ -12,7 +12,7 @@ output:
     code_folding: hide
     df_print: paged
 editor_options:
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -63,19 +63,19 @@ By the end of this lab, you should be able to:
 
 ## Load and inspect
 
-```{r load_data, echo=TRUE, eval=FALSE}
+```{r load_data, echo=TRUE, eval=TRUE}
 # GOAL: Read the dataset and keep 2022–2023.
 
 df <- read_csv("data/us-ams-simple.csv", na = c("-9999")) %>%
   clean_names() %>%
-  filter(year_local %in% c(___, ___))
+  filter(year_local %in% c(2022, 2023))
 
 glimpse(df)
 ```
 
 ## Derive time columns if needed
 
-```{r derive_time, echo=TRUE, eval=FALSE}
+```{r derive_time, echo=TRUE, eval=TRUE}
 # GOAL: Create date / month columns if they do not already exist.
 
 df <- df %>%
@@ -101,13 +101,13 @@ Examples:
 - `le`
 - `fc`
 
-```{r choose_one_sample, echo=TRUE, eval=FALSE}
-target_year <- ___
-target_var  <- "___"
+```{r choose_one_sample, echo=TRUE, eval=TRUE}
+target_year <- 2023
+target_var  <- "swc"
 
 sample_data <- df %>%
   filter(year_local == target_year) %>% 
-  slice_sample(n = ___)
+  slice_sample(n = 200)
 
 x <- sample_data[[target_var]]
 
@@ -115,6 +115,8 @@ mean(x, na.rm = TRUE); sd(x, na.rm = TRUE); length(x)
 ```
 
 > What variable and day did you choose, and why?
+
+I chose `swc` or soil water content as my target variable because it can tell scientists alot about the environmental conditions and ecosystem health in an area. Soil water content variability can help scientists to observe seasonal changes in evaporation, precipitation, and plant productivity. Furthermore, soil water content is useful for prediciting drought risks.
 
 ---
 
@@ -128,9 +130,9 @@ Examples:
 
 Fill in:
 
-> $H_0$: `___`
+> $H_0$: `The mean soil water content on this day is 36%.  `
 
-> $H_A$: `___`
+> $H_A$: `The mean soil water content on this day is not 36%. `
 
 ---
 
@@ -140,8 +142,8 @@ Use:
 
 $t = (\bar{x} - \mu_0) / (s / \sqrt{n})$
 
-```{r one_sample_manual, echo=TRUE, eval=FALSE}
-mu0 <- ___
+```{r one_sample_manual, echo=TRUE, eval=TRUE}
+mu0 <- 36
 
 xbar <- mean(x, na.rm = TRUE)
 s <- sd(x, na.rm = TRUE)
@@ -155,8 +157,8 @@ t_stat
 
 ## 4) Compute the p-value and degrees of freedom
 
-```{r one_sample_pvalue, echo=TRUE, eval=FALSE}
-df_t <- ___
+```{r one_sample_pvalue, echo=TRUE, eval=TRUE}
+df_t <- n-1
 
 p_value <- 2 * pt(-abs(t_stat), df = df_t)
 
@@ -172,15 +174,19 @@ tibble(
 
 > What does the p-value suggest about your null hypothesis?
 
+My p-value is large (0.3938708). This means that I fail to reject my null hypothesis, meaning that there is not sufficient evidence to suggest that the soil water content on the chosen day is different from 36%. 
+
 ---
 
 ## 5) Compare with `t.test()`
 
-```{r one_sample_ttest, echo=TRUE, eval=FALSE}
+```{r one_sample_ttest, echo=TRUE, eval=TRUE}
 t.test(x, mu = mu0)
 ```
 
 > Does the `t.test()` output agree with your manual calculation? If not, why might that be?
+
+Yes the `t.test()` output does agree with my manual calculation. The t-statiatic for my manual calculation was -0.8544913 and the t-statistic from my  `t.test()` was -0.85449. There is only a slight difference in when the number was rounded.
 
 ---
 
@@ -192,13 +198,13 @@ Choose:
 - the **same variable**
 - two different **day ranges in 2023**
 
-```{r choose_two_sample, echo=TRUE, eval=FALSE}
+```{r choose_two_sample, echo=TRUE, eval=TRUE}
 x1 <- df %>%
-  filter(year_local == 2023, doy > ___ & doy < ___) %>%
+  filter(year_local == 2023, doy > 0 & doy < 32) %>%
   pull(target_var)
 
 x2 <- df %>%
-  filter(year_local == 2023, doy > ___ & doy < ___) %>%
+  filter(year_local == 2023, doy > 181 & doy < 213) %>%
   pull(target_var)
 
 mean(x1, na.rm = TRUE); sd(x1, na.rm = TRUE); length(x1)
@@ -207,11 +213,13 @@ mean(x2, na.rm = TRUE); sd(x2, na.rm = TRUE); length(x2)
 
 > Why did you choose these two days?
 
+I chose these days because I wanted to choose days that occur at different times of the year to represent seasonal changes in soil water content. `DOY`range 0-32 represents a winter month (specifically January) and `DOY` 181-213 represents a summer month (specifically July).
+
 ---
 
 ## 7) Summarize the difference in means
 
-```{r two_sample_summary, echo=TRUE, eval=FALSE}
+```{r two_sample_summary, echo=TRUE, eval=TRUE}
 xbar1 <- mean(x1, na.rm = TRUE)
 xbar2 <- mean(x2, na.rm = TRUE)
 
@@ -234,7 +242,7 @@ tibble(
 
 ## 8) Compute the two-sample t-statistic manually (Welch)
 
-```{r two_sample_manual, echo=TRUE, eval=FALSE}
+```{r two_sample_manual, echo=TRUE, eval=TRUE}
 se_diff <- sqrt((s1^2 / n1) + (s2^2 / n2))
 
 t_stat <- mean_diff / se_diff
@@ -255,21 +263,28 @@ tibble(
 
 > What does the sign of `mean_diff` mean? What does the p-value mean?
 
+The positive sign of my `mean_diff` value tells me that my x1 has a greater mean value than my x2. In other words the mean soil water content in the winter months is higher than in the summer months. The p-value means that there is enough statistical evidence to suggest that there is a real mean difference between the two  groups.
+
 ---
 
 ## 9) Compare with `t.test()`
 
-```{r two_sample_ttest, echo=TRUE, eval=FALSE}
+```{r two_sample_ttest, echo=TRUE, eval=TRUE}
 t.test(x1, x2)
 ```
 
 > Does the automated t-test agree with your manual result?
-
+ 
+ Yes, the automated t-test agrees with my manual result. 
+ 
 ---
 
 ## 10) Visualize the two groups
 
-```{r two_sample_plot, echo=TRUE, eval=FALSE}
+```{r two_sample_plot, echo=TRUE, eval=TRUE}
+day_range1 <- "0_32"
+day_range2 <- "181_213"
+
 plot_df <- bind_rows(
   tibble(group = paste0("DOY_", day_range1), value = x1),
   tibble(group = paste0("DOY_", day_range2), value = x2)
@@ -287,6 +302,8 @@ ggplot(plot_df, aes(x = group, y = value, fill = group)) +
 
 > Does the plot match your statistical conclusion?
 
+Yes the plot matches my statistical conclusion. The mean soil water content in the winter months is higher than in the summer months.
+
 ---
 
 # Part III — Paired t-test
@@ -295,14 +312,14 @@ ggplot(plot_df, aes(x = group, y = value, fill = group)) +
 
 Choose one DOY and compare **2022 vs 2023** for the same variable.
 
-```{r paired_setup, echo=TRUE, eval=FALSE}
+```{r paired_setup, echo=TRUE, eval=TRUE}
 x1 <- df %>%
-  filter(year_local == 2022, doy > ___ & doy < ___) %>%
+  filter(year_local == 2022,  doy > 181 & doy < 213 ) %>%
   arrange(date) %>%
   pull(target_var)
 
-x2 <- df %>%
-  filter(year_local == 2023, doy > ___ & doy < ___) %>%
+x2 <- df %>% 
+  filter(year_local == 2023,  doy > 181 & doy < 213) %>%
   arrange(date) %>%
   pull(target_var)
 
@@ -311,11 +328,13 @@ length(x1); length(x2)
 
 > Why is this a paired comparison rather than an independent two-sample comparison?
 
+This is a paired comparison rather than an independent two-sample comparison because each observation in one group is directly related to an observation in the other group, rather than the observations being independent of each other. In this case, it is comparing values from different years that correspond with the same days. 
+
 ---
 
 ## 12) Compute paired differences manually
 
-```{r paired_manual, echo=TRUE, eval=FALSE}
+```{r paired_manual, echo=TRUE, eval=TRUE}
 d <- x1 - x2
 
 dbar <- mean(d, na.rm = TRUE)
@@ -336,15 +355,19 @@ tibble(
 
 > What does the sign of `dbar` mean?
 
+The negative sign of `dbar` suggests that  tells me that my x2 has a greater mean value than my x1. In other words the mean soil water content at the selected day range in 2023 is higher than in 2022.
+
 ---
 
 ## 13) Compare with `t.test(..., paired = TRUE)`
 
-```{r paired_ttest, echo=TRUE, eval=FALSE}
+```{r paired_ttest, echo=TRUE, eval=TRUE}
 t.test(x1, x2, paired = TRUE)
 ```
 
 > How does the paired t-test differ conceptually from the two-sample t-test?
+
+The paired t-test differs conceptually from the two-sample t-test because in the paired t-test each observation is directly related to an observation in the other group, rather than the observations being independent of each other, like in a two-sample t-test. The paired t-test compares the average difference within pairs of related observations, whereas the two-sample t-test compares the difference between the averages of two independent groups.
 
 ---
 
@@ -358,13 +381,13 @@ Group `ta` into broad seasonal categories:
 - Winter
 - Other
 
-```{r make_groups_anova, echo=TRUE, eval=FALSE}
+```{r make_groups_anova, echo=TRUE, eval=TRUE}
 df_anova <- df %>%
   filter(!is.na(ta)) %>%
   mutate(
     month_group = case_when(
-      month %in% c(___, ___, ___) ~ "Summer",
-      month %in% c(___, ___, ___) ~ "Winter",
+      month %in% c("Jun", "Jul", "Aug") ~ "Summer",
+      month %in% c("Dec", "Jan", "Feb") ~ "Winter",
       TRUE ~ "Other"
     )
   )
@@ -376,7 +399,7 @@ df_anova %>% count(month_group)
 
 ## 15) Visualize the groups
 
-```{r plot_anova_groups, echo=TRUE, eval=FALSE}
+```{r plot_anova_groups, echo=TRUE, eval=TRUE}
 ggplot(df_anova, aes(x = month_group, y = ta, fill = month_group)) +
   geom_boxplot(alpha = 0.8) +
   theme_classic(base_size = 18) +
@@ -388,12 +411,14 @@ ggplot(df_anova, aes(x = month_group, y = ta, fill = month_group)) +
 ```
 
 > Do the groups look different enough that ANOVA might detect a difference?
-
+ 
+ The groups do look different enough that ANOVA might detect a difference. The means are pretty clearly different from each other.
+ 
 ---
 
 ## 16) Compute ANOVA components manually
 
-```{r anova_manual_components, echo=TRUE, eval=FALSE}
+```{r anova_manual_components, echo=TRUE, eval=TRUE}
 grand_mean <- mean(df_anova$ta, na.rm = TRUE)
 
 group_stats <- df_anova %>%
@@ -436,16 +461,20 @@ tibble(
 
 > In your own words, what do `ss_between` and `ss_within` represent?
 
+`ss_between` represents the variability between the group means and the overall mean of all the observations. `ss_within` represents the variability within each group, meaning how much individual observations differ from the group mean. 
+
 ---
 
 ## 17) Compare with `aov()`
 
-```{r run_anova, echo=TRUE, eval=FALSE}
+```{r run_anova, echo=TRUE, eval=TRUE}
 model <- aov(ta ~ month_group, data = df_anova)
 summary(model)
 ```
 
 > What does the ANOVA p-value tell you? Does it tell you which groups differ?
+
+The ANOVA p-value tells me if at least one group mean differs significantly from the others, but it does not tell me which group specifically. In this case, my p-value is small meaning that there is enough statistically significant to indicate there is a difference in the group means (or that at least one group mean differs from the others).
 
 ---
 
@@ -458,7 +487,7 @@ Answer in **5–7 sentences**:
 - How is ANOVA a generalization of the t-test?
 - What stayed the same across all these tests?
 
-> *Write your answer here.*
+> A one-sample t-test compares the mean of a single group to a known value, whereas a two-sample t-test compares the means of two independent groups. A paired t-test is special because while it is a two-sample test, each observation in one group is directly related to an observation in the other group. ANOVA allows comparison of three or more group means simultaneously. All the tests are used to determine some kind of difference in mean.  Furthermore, across all of the tests, test statistics, like the p-value, where used to make comparisons. 
 
 ---
 
